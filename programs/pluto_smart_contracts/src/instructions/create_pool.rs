@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{Mint ,Token ,AssociatedToken}
+    token::{Mint ,Token , AssociatedToken}
 };
-use crate::state::*;
+use crate::state::Pool;
 
 pub fn create_pool(ctx: Context<CreatePool>, mint_a: Pubkey, mint_b: Pubkey) -> Result<()> {
     ctx.accounts.pool.set_inner(Pool {

@@ -1,4 +1,8 @@
 use anchor_lang::prelude::*;
+pub mod instructions;
+pub mod state;
+
+use instructions::*;
 
 declare_id!("GryS4Vrr1kEkAtmqtFcxJsQvSWnZg9fKhXbJeEVagy3J");
 
@@ -6,11 +10,8 @@ declare_id!("GryS4Vrr1kEkAtmqtFcxJsQvSWnZg9fKhXbJeEVagy3J");
 pub mod pluto_smart_contracts {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-        Ok(())
+    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+        create_pool(ctx)?;
+        ok(())
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
