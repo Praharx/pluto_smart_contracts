@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+
 pub mod instructions;
 pub mod state;
 
@@ -10,8 +11,8 @@ declare_id!("GryS4Vrr1kEkAtmqtFcxJsQvSWnZg9fKhXbJeEVagy3J");
 pub mod pluto_smart_contracts {
     use super::*;
 
-    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+    pub fn initialize_pool(ctx: Context<CreatePool>) -> Result<()> {
         create_pool(ctx)?;
-        ok(())
+        Ok(())
     }
 }
