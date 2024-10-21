@@ -24,4 +24,11 @@ pub mod pluto_smart_contracts {
     ) -> Result<()> {
         deposit_liquidity(ctx, amount_a, amount_b)
     }
+
+    pub fn withdraw_liquidity(
+        ctx: Context<WithdrawLiquidity>,
+        amount: u64
+    ) -> Result<()> {
+        withdraw_liquidity(ctx, amount)
+    }
 }
