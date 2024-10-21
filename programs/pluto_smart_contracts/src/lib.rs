@@ -14,7 +14,14 @@ pub mod pluto_smart_contracts {
     use super::*;
 
     pub fn initialize_pool(ctx: Context<CreatePool>) -> Result<()> {
-        create_pool(ctx)?;
-        Ok(())
+        create_pool(ctx)
+    }
+
+    pub fn deposit_liquidity(
+        ctx: Context<DepositLiquidity>,
+        amount_a: u64,
+        amount_b: u64,
+    ) -> Result<()> {
+        deposit_liquidity(ctx, amount_a, amount_b)
     }
 }
