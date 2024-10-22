@@ -1,5 +1,3 @@
-use std::alloc::System;
-
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -13,13 +11,15 @@ use crate::{
 };
 
 pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result<()> {
-    let authority_bump = ctx.bumps.pool_authority;
-    let authority_seeds = &[
-        &ctx.accounts.mint_a.key().to_bytes(),
-        &ctx.accounts.mint_b.key().to_bytes(),            
-        &[authority_bump]
-    ];
-    let signer_seeds = &[&authority_seeds[..]];
+    const AUTHORITY: &[u8] = b"pool_authority";
+        let authority_bump = ctx.bumps.pool_authority;
+        let authority_seeds = &[
+            AUTHORITY,
+            &ctx.accounts.mint_a.key().to_bytes(),
+            &ctx.accounts.mint_b.key().to_bytes(),
+            &[authority_bump],
+        ];
+        let signer_seeds = &[authority_seeds.as_slice()];
 
     // Tranfer token from the pool
     // The withdrawals are calculated relative to the amount user asked for to the mint_liquidity tokens supply that exist in pool this would represent user's share in the pool and hence should receive tokens accordingly.
@@ -137,14 +137,14 @@ pub struct WithdrawLiquidity<'info> {
     #[account(
         mut,
         associated_token::mint = mint_b,
-        associated_tokne::authority = pool_authority
+        associated_token::authority = pool_authority
     )]
     pub pool_account_b: Account<'info, TokenAccount>,
 
     #[account(
         mut,
         associated_token::mint = mint_liquidity,
-        associated_token::auhtority = depositor
+        associated_token::authority = depositor
     )]
     pub depositor_account_liquidity: Account<'info, TokenAccount>,
 
@@ -158,7 +158,7 @@ pub struct WithdrawLiquidity<'info> {
     #[account(
         init_if_needed,
         payer = payer,
-        associated_toke::mint = mint_b,
+        associated_token::mint = mint_b,
         associated_token::authority = depositor
     )]
     pub depositor_account_b: Account<'info, TokenAccount>,

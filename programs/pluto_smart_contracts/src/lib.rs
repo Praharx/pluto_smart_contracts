@@ -17,15 +17,15 @@ pub mod pluto_smart_contracts {
         create_pool(ctx)
     }
 
-    pub fn deposit_liquidity(
+    pub fn pool_deposit(
         ctx: Context<DepositLiquidity>,
         amount_a: u64,
         amount_b: u64,
     ) -> Result<()> {
-        deposit_liquidity(ctx, amount_a, amount_b)
+       deposit_liquidity(ctx, amount_a, amount_b)
     }
 
-    pub fn withdraw_liquidity(
+    pub fn pool_withdrawal(
         ctx: Context<WithdrawLiquidity>,
         amount: u64
     ) -> Result<()> {

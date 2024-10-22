@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{Mint, Token, TokenAccount, MintTo, Transfer}
+    token::{self, Mint, Token, TokenAccount, MintTo, Transfer}
 };
 use crate::{
     state::Pool,
@@ -16,12 +16,12 @@ pub fn deposit_liquidity(
     amount_b: u64,
 ) -> Result<()> {
     // preventing depositing assets the depositor doesn't own.
-    let mut amount_a = if amount_a > ctx.accounts.depositor_account_a.amount {
+    let amount_a = if amount_a > ctx.accounts.depositor_account_a.amount {
         ctx.accounts.depositor_account_a.amount
     } else {
         amount_a
     };
-    let mut amount_b = if amount_b > ctx.accounts.depositor_account_a.amount {
+    let amount_b = if amount_b > ctx.accounts.depositor_account_a.amount {
         ctx.accounts.depositor_account_b.amount
     } else {
         amount_b
@@ -32,7 +32,7 @@ pub fn deposit_liquidity(
     let pool_b = &ctx.accounts.pool_account_b;
 
     let pool_creation = pool_a.amount == 0 && pool_b.amount == 0;
-    (amount_a, amount_b) = if pool_creation {
+    let (amount_a, amount_b) = if pool_creation {
         (amount_a, amount_b)
     } else {
         // ratio should be dividing pool_a.amount to pool_b.amout, only then willl we be able to scale them relative to each other.
@@ -40,7 +40,7 @@ pub fn deposit_liquidity(
                     .checked_div(I64F64::from_num(pool_b.amount)) // divinding here instead of multiplying 
                     .unwrap();
         // scaling up amount_b to match the amount_a by mutlipyling ratio.
-        (amount_a, amount_b) = if pool_a.amount > pool_b.amount {
+        if pool_a.amount > pool_b.amount {
             (
                 I64F64::from_num(amount_b)
                 .checked_mul(ratio)
@@ -50,15 +50,16 @@ pub fn deposit_liquidity(
             )
         } else {
             // down scaling amount_a to match the amount_b relatively.
-           ( 
+            ( 
                 amount_a,
                 I64F64::from_num(amount_a)
                 .checked_div(ratio)
                 .unwrap()
                 .to_num::<u64>(),
             )
-        };
+        }
     };
+     
         // Computing the amount of liquidity that is to be deposited
         // total liquidity is represented as the geometric mean of amount a & b
         let mut liquidity = I64F64::from_num(amount_a)
@@ -74,7 +75,7 @@ pub fn deposit_liquidity(
                 return err!(PlutoError::DepositTooSmall)
             } 
 
-            liqudity -= MINIMUM_LIQUIDITY;
+            liquidity -= MINIMUM_LIQUIDITY;
         }
 
         // Transfer tokens to the pool
@@ -101,18 +102,21 @@ pub fn deposit_liquidity(
             amount_b
         )?;
 
-        // Mint liquidity token to the depositor against rthe liquidity deposited
+        const AUTHORITY: &[u8] = b"pool_authority";
+        // Mint liquidity token to the depositor against the liquidity deposited
         let authority_bump = ctx.bumps.pool_authority;
         let authority_seeds = &[
+            AUTHORITY,
             &ctx.accounts.mint_a.key().to_bytes(),
             &ctx.accounts.mint_b.key().to_bytes(),
-            &[authority_bump]
+            &[authority_bump],
         ];
-        let signer_seeds = &[&[authority_seeds[..]]];
+        let signer_seeds = &[authority_seeds.as_slice()];
         token::mint_to(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
                 MintTo {
+                    authority: ctx.accounts.pool_authority.to_account_info(),
                     mint: ctx.accounts.mint_liquidity.to_account_info(),
                     to: ctx.accounts.depositor_account_liquidity.to_account_info()
                 },
@@ -190,14 +194,14 @@ pub struct DepositLiquidity<'info> {
         #[account(
             mut,
             associated_token::mint = mint_a,
-            associated_token::auhtority = depositor
+            associated_token::authority = depositor
         )]
         pub depositor_account_a: Account<'info, TokenAccount>,
 
         #[account(
             mut,
             associated_token::mint = mint_b,
-            associated_token_authority = depositor
+            associated_token::authority = depositor
         )]
         pub depositor_account_b: Account<'info, TokenAccount>,
 
