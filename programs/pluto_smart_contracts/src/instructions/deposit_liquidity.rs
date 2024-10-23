@@ -142,7 +142,7 @@ pub struct DepositLiquidity<'info> {
             has_one = mint_a,
             has_one = mint_b
         )]
-        pub pool: Account<'info, PoolState>,
+        pub pool: Box<Account<'info, PoolState>>,
         
         ///CHECK: Read only authority
         #[account(
@@ -154,8 +154,8 @@ pub struct DepositLiquidity<'info> {
                 bump
             )]
         pub pool_authority: AccountInfo<'info>,
-        pub mint_a: Account<'info, Mint>,
-        pub mint_b: Account<'info, Mint>,
+        pub mint_a: Box<Account<'info, Mint>>,
+        pub mint_b: Box<Account<'info, Mint>>,
         pub depositor: Signer<'info>,
         
         #[account(
@@ -167,21 +167,21 @@ pub struct DepositLiquidity<'info> {
             ],
             bump,
         )]
-        pub mint_liquidity: Account<'info, Mint>,
+        pub mint_liquidity: Box<Account<'info, Mint>>,
 
         #[account(
             mut,
             associated_token::mint = mint_a,
             associated_token::authority = pool_authority,
         )]
-        pub pool_account_a: Account<'info, TokenAccount>,
+        pub pool_account_a: Box<Account<'info, TokenAccount>>,
 
         #[account(
             mut,
             associated_token::mint = mint_b,
             associated_token::authority = pool_authority,
         )]
-        pub pool_account_b: Account<'info, TokenAccount>,
+        pub pool_account_b: Box<Account<'info, TokenAccount>>,
 
         #[account(
             init_if_needed,
@@ -189,21 +189,21 @@ pub struct DepositLiquidity<'info> {
             associated_token::mint = mint_liquidity,
             associated_token::authority = depositor
         )]
-        pub depositor_account_liquidity: Account<'info, TokenAccount>,
+        pub depositor_account_liquidity: Box<Account<'info, TokenAccount>>,
 
         #[account(
             mut,
             associated_token::mint = mint_a,
             associated_token::authority = depositor
         )]
-        pub depositor_account_a: Account<'info, TokenAccount>,
+        pub depositor_account_a: Box<Account<'info, TokenAccount>>,
 
         #[account(
             mut,
             associated_token::mint = mint_b,
             associated_token::authority = depositor
         )]
-        pub depositor_account_b: Account<'info, TokenAccount>,
+        pub depositor_account_b: Box<Account<'info, TokenAccount>>,
 
         pub token_program: Program<'info, Token>,
         pub associated_token_program: Program<'info, AssociatedToken>,
