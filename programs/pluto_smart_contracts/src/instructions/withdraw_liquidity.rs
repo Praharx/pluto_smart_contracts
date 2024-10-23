@@ -6,7 +6,7 @@ use anchor_spl::{
 use fixed::types::I64F64;
 
 use crate::{
-    state::Pool,
+    state::PoolState,
     constants::MINIMUM_LIQUIDITY
 };
 
@@ -97,7 +97,7 @@ pub struct WithdrawLiquidity<'info> {
         has_one = mint_a,
         has_one = mint_b
     )]
-    pub pool: Account<'info, Pool>,
+    pub pool: Account<'info, PoolState>,
 
     /// CHECK: Read only authority
     #[account(

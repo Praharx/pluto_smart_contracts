@@ -4,7 +4,7 @@ use anchor_spl::{
     token::{self, Mint, Token, TokenAccount, MintTo, Transfer}
 };
 use crate::{
-    state::Pool,
+    state::PoolState,
     constants::MINIMUM_LIQUIDITY,
     errors::PlutoError
 };
@@ -142,7 +142,7 @@ pub struct DepositLiquidity<'info> {
             has_one = mint_a,
             has_one = mint_b
         )]
-        pub pool: Account<'info, Pool>,
+        pub pool: Account<'info, PoolState>,
         
         ///CHECK: Read only authority
         #[account(
