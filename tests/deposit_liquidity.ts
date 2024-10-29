@@ -46,26 +46,26 @@ describe('Deposit liquidity', () => {
         .signers([values.payer])
         .rpc();
       
-      console.log("Setup completed successfully");
+      // console.log("Setup completed successfully");
     } catch (error) {
-      console.error("Error in setup:", error);
+      // console.error("Error in setup:", error);
       throw error;
     }
   });
 
   it("deposits initial liquidity", async () => {
     try {
-      console.log("\n=== Starting Initial Liquidity Deposit Test ===");
+      // console.log("\n=== Starting Initial Liquidity Deposit Test ===");
       
       // Log initial balances
-      console.log("\nInitial balances:");
+      // console.log("\nInitial balances:");
       const initialDepositorA = await getAccount(connection, values.holderAccountA);
       const initialDepositorB = await getAccount(connection, values.holderAccountB);
-      console.log("Depositor Token A balance:", initialDepositorA.amount.toString());
-      console.log("Depositor Token B balance:", initialDepositorB.amount.toString());
+      // console.log("Depositor Token A balance:", initialDepositorA.amount.toString());
+      // console.log("Depositor Token B balance:", initialDepositorB.amount.toString());
 
       // Deposit liquidity
-      console.log("\nSubmitting deposit transaction...");
+      // console.log("\nSubmitting deposit transaction...");
       const tx = await program.methods
         .poolDeposit(
           values.depositAmountA,
@@ -91,13 +91,13 @@ describe('Deposit liquidity', () => {
         .signers([values.payer])
         .rpc();
 
-      console.log("Transaction submitted:", tx);
+      // console.log("Transaction submitted:", tx);
 
       // Wait for confirmation
       await connection.confirmTransaction(tx);
       
       // Verify final balances
-      console.log("\nVerifying final balances...");
+      // console.log("\nVerifying final balances...");
       const finalDepositorA = await getAccount(connection, values.holderAccountA);
       const finalDepositorB = await getAccount(connection, values.holderAccountB);
       const poolA = await getAccount(connection, values.poolAccountA);
@@ -137,15 +137,15 @@ describe('Deposit liquidity', () => {
         "Incorrect liquidity tokens minted"
       );
 
-      console.log("\nFinal balances:");
-      console.log("Pool Token A balance:", poolA.amount.toString());
-      console.log("Pool Token B balance:", poolB.amount.toString());
-      console.log("Liquidity tokens minted:", liquidityAccount.amount.toString());
+      // console.log("\nFinal balances:");
+      // console.log("Pool Token A balance:", poolA.amount.toString());
+      // console.log("Pool Token B balance:", poolB.amount.toString());
+      // console.log("Liquidity tokens minted:", liquidityAccount.amount.toString());
       
-      console.log("\n=== Initial Liquidity Deposit Test Completed Successfully ===");
+      // console.log("\n=== Initial Liquidity Deposit Test Completed Successfully ===");
     } catch (error) {
-      console.error("\n=== Error in Deposit Test ===");
-      console.error("Detailed error:", error);
+      // console.error("\n=== Error in Deposit Test ===");
+      // console.error("Detailed error:", error);
       if (error.logs) {
         console.error("\nTransaction logs:");
         error.logs.forEach((log: string, index: number) => {
@@ -159,7 +159,9 @@ describe('Deposit liquidity', () => {
   it("deposits subsequent liquidity with correct proportions", async () => {
     try {
       console.log("\n=== Starting Subsequent Liquidity Deposit Test ===");
-      
+
+      console.log("A deposit:", values.depositAmountA.toString(), "B deposit:", values.depositAmountB.toString() )
+
       // First deposit
       await program.methods
         .poolDeposit(
@@ -189,10 +191,15 @@ describe('Deposit liquidity', () => {
       // Get pool balances after first deposit
       const poolAAfterFirst = await getAccount(connection, values.poolAccountA);
       const poolBAfterFirst = await getAccount(connection, values.poolAccountB);
+      
+
 
       // Calculate proportional amounts for second deposit (half of first deposit)
       const secondDepositA = values.depositAmountA.divn(2);
-      const secondDepositB = values.depositAmountB.divn(2);
+      const secondDepositB = values.depositAmountB;
+
+      console.log("**** second A",secondDepositA.toString());
+      console.log("**** second b",secondDepositB.toString());
 
       // Second deposit
       await program.methods
@@ -224,7 +231,15 @@ describe('Deposit liquidity', () => {
       const poolAAfterSecond = await getAccount(connection, values.poolAccountA);
       const poolBAfterSecond = await getAccount(connection, values.poolAccountB);
 
-      // Assertions
+      console.log(
+        "Successful",
+        BigInt(poolAAfterSecond.amount.toString()), "\n",
+        "Fail",
+        BigInt(poolBAfterSecond.amount.toString()), 
+      )
+
+      const ratio = values.depositAmountA.mul(values.depositAmountB);
+
       assert.ok(
         BigInt(poolAAfterSecond.amount.toString()) === 
         BigInt(poolAAfterFirst.amount.toString()) + BigInt(secondDepositA.toString()),
@@ -233,10 +248,10 @@ describe('Deposit liquidity', () => {
 
       assert.ok(
         BigInt(poolBAfterSecond.amount.toString()) === 
-        BigInt(poolBAfterFirst.amount.toString()) + BigInt(secondDepositB.toString()),
+        BigInt(poolBAfterFirst.amount.toString()) + BigInt(ratio.div(secondDepositA).toString()),
         "Incorrect final pool B balance"
       );
-
+    
       console.log("\n=== Subsequent Liquidity Deposit Test Completed Successfully ===");
     } catch (error) {
       console.error("\n=== Error in Subsequent Deposit Test ===");

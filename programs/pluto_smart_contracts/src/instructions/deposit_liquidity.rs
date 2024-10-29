@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{self, Mint, Token, TokenAccount, MintTo, Transfer}
+    token::{self,Mint, MintTo, Token, TokenAccount, Transfer}
 };
 use crate::{
     state::PoolState,
@@ -33,27 +33,44 @@ pub fn deposit_liquidity(
 
     let pool_creation = pool_a.amount == 0 && pool_b.amount == 0;
     let (amount_a, amount_b) = if pool_creation {
+        msg!("Values before USD {},{}", amount_a, amount_b);
         (amount_a, amount_b)
     } else {
-        // ratio should be dividing pool_a.amount to pool_b.amout, only then willl we be able to scale them relative to each other.
+        // ratio should be multiplying pool_a.amount to pool_b.amout, only then willl we be able to scale them relative to each other.
         let ratio = I64F64::from_num(pool_a.amount)
-                    .checked_div(I64F64::from_num(pool_b.amount)) // divinding here instead of multiplying 
+                    .checked_mul(I64F64::from_num(pool_b.amount)) // divinding here instead of multiplying 
                     .unwrap();
         // scaling up amount_b to match the amount_a by mutlipyling ratio.
         if pool_a.amount > pool_b.amount {
             (
-                I64F64::from_num(amount_b)
-                .checked_mul(ratio)
+                I64F64::from_num(ratio)
+                .checked_div(I64F64::from_num(amount_b))
                 .unwrap()
                 .to_num::<u64>(),
                 amount_b,
             )
+        } else if pool_a.amount == pool_b.amount {
+            let diff;
+            if amount_a > amount_b {
+                diff = amount_a - amount_b;
+                (
+                    amount_a - diff,
+                    amount_b
+                )
+            }
+            else {
+                diff = amount_b - amount_a;
+                (
+                    amount_a,
+                    amount_b - diff
+                )
+            }
         } else {
             // down scaling amount_a to match the amount_b relatively.
             ( 
                 amount_a,
-                I64F64::from_num(amount_a)
-                .checked_div(ratio)
+                I64F64::from_num(ratio)
+                .checked_div(I64F64::from_num(amount_a))
                 .unwrap()
                 .to_num::<u64>(),
             )

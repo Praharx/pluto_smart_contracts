@@ -16,19 +16,19 @@ describe('Create pool', () => {
   let values: TestValues;
 
   beforeEach(async() => {
-    console.log("Starting beforeEach setup...");
+    // console.log("Starting beforeEach setup...");
     values = createValues();
-    console.log("Values created successfully");
+    // console.log("Values created successfully");
 
     try {
-      console.log("Starting token minting process...");
+      // console.log("Starting token minting process...");
       await mintingTokens({
         connection,
         creator: values.payer,
         mintAKeypair: values.mintAKeypair,
         mintBKeypair: values.mintBKeypair
       });
-      console.log("Token minting completed successfully");
+      // console.log("Token minting completed successfully");
     } catch (error) {
       console.error("Error in minting tokens:", error);
       throw error;
@@ -37,22 +37,22 @@ describe('Create pool', () => {
 
   it("initialize pool", async () => {
     try {
-      console.log("\n=== Starting Pool Initialization Test ===");
+      // console.log("\n=== Starting Pool Initialization Test ===");
       
       // Log the accounts being passed to verify they are correct
-      console.log("\nAccount Validation:");
-      console.log("Program ID:", program.programId.toBase58());
-      console.log("Payer:", values.payer.publicKey.toBase58());
-      console.log("Pool Key:", values.poolKey.toBase58());
-      console.log("Pool Authority:", values.poolAuthority.toBase58());
-      console.log("Mint Liquidity:", values.mintLiquidity.toBase58());
-      console.log("Mint A:", values.mintAKeypair.publicKey.toBase58());
-      console.log("Mint B:", values.mintBKeypair.publicKey.toBase58());
-      console.log("Pool Account A:", values.poolAccountA.toBase58());
-      console.log("Pool Account B:", values.poolAccountB.toBase58());
+      // console.log("\nAccount Validation:");
+      // console.log("Program ID:", program.programId.toBase58());
+      // console.log("Payer:", values.payer.publicKey.toBase58());
+      // console.log("Pool Key:", values.poolKey.toBase58());
+      // console.log("Pool Authority:", values.poolAuthority.toBase58());
+      // console.log("Mint Liquidity:", values.mintLiquidity.toBase58());
+      // console.log("Mint A:", values.mintAKeypair.publicKey.toBase58());
+      // console.log("Mint B:", values.mintBKeypair.publicKey.toBase58());
+      // console.log("Pool Account A:", values.poolAccountA.toBase58());
+      // console.log("Pool Account B:", values.poolAccountB.toBase58());
 
       // Verify PDA derivation
-      console.log("\nVerifying PDA derivation...");
+      // console.log("\nVerifying PDA derivation...");
       const [expectedPoolKey] = await PublicKey.findProgramAddress(
         [
           Buffer.from('pool'),
@@ -63,9 +63,9 @@ describe('Create pool', () => {
       );
       
       assert.ok(values.poolKey.equals(expectedPoolKey), "Pool PDA derivation mismatch");
-      console.log("PDA verification successful");
+      // console.log("PDA verification successful");
 
-      console.log("\nSubmitting transaction...");
+      // console.log("\nSubmitting transaction...");
       const tx = await program.methods
         .initializePool()
         .accountsStrict({
@@ -84,32 +84,32 @@ describe('Create pool', () => {
         .signers([values.payer])
         .rpc();
 
-      console.log("Transaction submitted:", tx);
+      // console.log("Transaction submitted:", tx);
 
       // Wait for transaction confirmation
-      console.log("\nWaiting for transaction confirmation...");
+      // console.log("\nWaiting for transaction confirmation...");
       const confirmation = await connection.confirmTransaction(tx);
-      console.log("Transaction confirmed:", confirmation);
+      // console.log("Transaction confirmed:", confirmation);
       
       // Add small delay before fetching account
-      console.log("\nWaiting before account fetch...");
+      // console.log("\nWaiting before account fetch...");
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Verify the pool was created
-      console.log("\nFetching pool account...");
+      // console.log("\nFetching pool account...");
       const poolAccount = await program.account.poolState.fetch(values.poolKey);  // Note: Changed from pool to poolState
       
       // Log the pool account data
-      console.log("\nPool Account Data:");
+      // console.log("\nPool Account Data:");
       console.log("Mint A:", poolAccount.mintA.toBase58());
       console.log("Mint B:", poolAccount.mintB.toBase58());
       
       // Verify the pool's mint addresses
-      console.log("\nVerifying mint addresses...");
+      // console.log("\nVerifying mint addresses...");
       assert.ok(poolAccount.mintA.equals(values.mintAKeypair.publicKey), "Mint A mismatch");
       assert.ok(poolAccount.mintB.equals(values.mintBKeypair.publicKey), "Mint B mismatch");
       
-      console.log("\n=== Pool Initialization Test Completed Successfully ===");
+      // console.log("\n=== Pool Initialization Test Completed Successfully ===");
     } catch (error) {
       console.error("\n=== Error in Pool Initialization Test ===");
       console.error("Detailed error:", error);
