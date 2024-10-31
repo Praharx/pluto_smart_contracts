@@ -4,7 +4,6 @@ use anchor_spl::{
     token::{self, Mint, Token, Burn, TokenAccount, Transfer}
 };
 use fixed::types::I64F64;
-
 use crate::{
     state::PoolState,
     constants::MINIMUM_LIQUIDITY
@@ -32,6 +31,8 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
         .unwrap()
         .floor()
         .to_num::<u64>();
+    msg!("amount a: {} pool_account_a: {}", amount_a, ctx.accounts.pool_account_a.amount);
+
     token::transfer(
         CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
@@ -44,6 +45,7 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
         ),
         amount_a,
     )?;
+    msg!("I have completed the first transfer!");
 
     let amount_b = I64F64::from_num(amount)
         .checked_mul(I64F64::from_num(ctx.accounts.pool_account_b.amount))
@@ -68,6 +70,7 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
     )?;
 
     // Burn the mint_liquidty tokens
+    msg!("Im on burn function");
     token::burn(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -97,7 +100,7 @@ pub struct WithdrawLiquidity<'info> {
         has_one = mint_a,
         has_one = mint_b
     )]
-    pub pool: Account<'info, PoolState>,
+    pub pool: Box<Account<'info, PoolState>>,
 
     /// CHECK: Read only authority
     #[account(
@@ -115,38 +118,38 @@ pub struct WithdrawLiquidity<'info> {
     #[account(
         mut,
         seeds = [
-            b"mint_auhtority",
+            b"mint_authority",
             mint_a.key().as_ref(),
             mint_b.key().as_ref()
         ],
         bump
     )]
-    pub mint_liquidity: Account<'info, Mint>,
+    pub mint_liquidity: Box<Account<'info, Mint>>,
 
     #[account(mut)]
-    pub mint_a: Account<'info, Mint>,
+    pub mint_a: Box<Account<'info, Mint>>,
     #[account(mut)]
-    pub mint_b: Account<'info, Mint>,
+    pub mint_b: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
         associated_token::mint = mint_a,
         associated_token::authority = pool_authority
     )]
-    pub pool_account_a: Account<'info, TokenAccount>,
+    pub pool_account_a: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         associated_token::mint = mint_b,
         associated_token::authority = pool_authority
     )]
-    pub pool_account_b: Account<'info, TokenAccount>,
+    pub pool_account_b: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
         associated_token::mint = mint_liquidity,
         associated_token::authority = depositor
     )]
-    pub depositor_account_liquidity: Account<'info, TokenAccount>,
+    pub depositor_account_liquidity: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
@@ -154,14 +157,14 @@ pub struct WithdrawLiquidity<'info> {
         associated_token::mint = mint_a,
         associated_token::authority = depositor
     )]
-    pub depositor_account_a: Account<'info, TokenAccount>,
+    pub depositor_account_a: Box<Account<'info, TokenAccount>>,
     #[account(
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_b,
         associated_token::authority = depositor
     )]
-    pub depositor_account_b: Account<'info, TokenAccount>,
+    pub depositor_account_b: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

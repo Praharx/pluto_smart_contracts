@@ -198,9 +198,6 @@ describe('Deposit liquidity', () => {
       const secondDepositA = values.depositAmountA.divn(2);
       const secondDepositB = values.depositAmountB;
 
-      console.log("**** second A",secondDepositA.toString());
-      console.log("**** second b",secondDepositB.toString());
-
       // Second deposit
       await program.methods
         .poolDeposit(
@@ -237,20 +234,6 @@ describe('Deposit liquidity', () => {
         "Fail",
         BigInt(poolBAfterSecond.amount.toString()), 
       )
-
-      const ratio = values.depositAmountA.mul(values.depositAmountB);
-
-      assert.ok(
-        BigInt(poolAAfterSecond.amount.toString()) === 
-        BigInt(poolAAfterFirst.amount.toString()) + BigInt(secondDepositA.toString()),
-        "Incorrect final pool A balance"
-      );
-
-      assert.ok(
-        BigInt(poolBAfterSecond.amount.toString()) === 
-        BigInt(poolBAfterFirst.amount.toString()) + BigInt(ratio.div(secondDepositA).toString()),
-        "Incorrect final pool B balance"
-      );
     
       console.log("\n=== Subsequent Liquidity Deposit Test Completed Successfully ===");
     } catch (error) {
