@@ -3,7 +3,7 @@ import type { Program } from "@coral-xyz/anchor";
 import { expect } from "chai";
 import type { PlutoSmartContracts } from "../target/types/pluto_smart_contracts";
 import { type TestValues, createValues, mintingTokens } from "./utils";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 describe("Withdraw Liquidity", () => {
     const provider = anchor.AnchorProvider.env();

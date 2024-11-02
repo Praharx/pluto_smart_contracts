@@ -5,6 +5,24 @@ use fixed::types::I64F64;
 
 use crate::state::PoolState;
 
+pub fn swap_tokens(
+    ctx: Context<SwapToken>,
+    swap_a: bool,
+    input_amount: u64,
+    output_amount: u64
+) -> Result<()> {
+    // Preventing the user from using the tokens he doesnt own
+    let input = if swap_a && input_amount > ctx.accounts.trader_account_a.amount {
+        ctx.accounts.trader_account_a.amount
+    } else if !swap_a && input_amount > ctx.accounts.trader_account_b.amount {
+        ctx.accounts.trader_account_b.amount
+    } else {
+        input_amount
+    };
+
+    Ok(())
+}
+
 #[derive(Accounts)]
 pub struct SwapToken<'info> {
     // the person performing a swap
