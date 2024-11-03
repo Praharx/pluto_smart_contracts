@@ -85,7 +85,38 @@ describe('Deposit liquidity', () => {
 
      assert(values.poolAccountA,initialDepositorAmountA.amount.toString());
      assert(values.poolAccountB, initialDepositorAmountB.amount.toString());
+  })
 
+  it("Deposit amount in pool Account is the same as deposited by the user", async () => {
+    await program.methods
+    .poolDeposit(
+     new BN(2 * 10 ** 6),
+     new BN(2 * 10 ** 6)
+    )
+    .accountsStrict({
+     payer: values.payer.publicKey,
+     pool: values.poolKey,
+     poolAuthority: values.poolAuthority,
+     mintA: values.mintAKeypair.publicKey,
+     mintB: values.mintBKeypair.publicKey,
+     depositor: values.payer.publicKey,
+     mintLiquidity: values.mintLiquidity,
+     poolAccountA: values.poolAccountA,
+     poolAccountB: values.poolAccountB,
+     depositorAccountLiquidity: values.liquidityAccount,
+     depositorAccountA: values.holderAccountA,
+     depositorAccountB: values.holderAccountB,              
+     tokenProgram: TOKEN_PROGRAM_ID,            
+     associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+     systemProgram: anchor.web3.SystemProgram.programId
+    })
+    .signers([values.payer]).rpc();
+
+    const finalPoolAmountA = await getAccount(connection, values.poolAccountA);
+    const finalPoolAmountB = await getAccount(connection, values.poolAccountB);
+
+    assert(new BN(finalPoolAmountA.amount.toString()).eq(new BN(2 * 10 ** 6)), "Pool amount A and deposit amount not same");
+    assert(new BN(finalPoolAmountB.amount.toString()).eq(new BN(2 * 10 ** 6)), "Pool amount B and deposit amount not same");
   })
 
 
