@@ -4,9 +4,7 @@ use anchor_spl::{
     token::{self,Mint, MintTo, Token, TokenAccount, Transfer}
 };
 use crate::{
-    state::PoolState,
-    constants::MINIMUM_LIQUIDITY,
-    errors::PlutoError
+    constants::{AUTHORITY_SEED, MINIMUM_LIQUIDITY}, errors::PlutoError, state::PoolState
 };
 use fixed::types::I64F64;
 
@@ -27,7 +25,6 @@ pub fn deposit_liquidity(
         amount_b
     };
 
-    // Making sure that equal proportions of both the assets are provided.
     let pool_a = &ctx.accounts.pool_account_a;
     let pool_b = &ctx.accounts.pool_account_b;
 
@@ -36,9 +33,9 @@ pub fn deposit_liquidity(
         msg!("Values before USD {},{}", amount_a, amount_b);
         (amount_a, amount_b)
     } else {
-        // ratio should be multiplying pool_a.amount to pool_b.amout, only then willl we be able to scale them relative to each other.
+        // ratio should be multiplying pool_a.amount to pool_b.amount, only then willl we be able to scale them relative to each other.
         let ratio = I64F64::from_num(pool_a.amount)
-                    .checked_mul(I64F64::from_num(pool_b.amount)) // divinding here instead of multiplying 
+                    .checked_mul(I64F64::from_num(pool_b.amount)) 
                     .unwrap();
         // scaling up amount_b to match the amount_a by mutlipyling ratio.
         if pool_a.amount > pool_b.amount {
@@ -119,11 +116,10 @@ pub fn deposit_liquidity(
             amount_b
         )?;
 
-        const AUTHORITY: &[u8] = b"pool_authority";
         // Mint liquidity token to the depositor against the liquidity deposited
         let authority_bump = ctx.bumps.pool_authority;
         let authority_seeds = &[
-            AUTHORITY,
+            AUTHORITY_SEED,
             &ctx.accounts.mint_a.key().to_bytes(),
             &ctx.accounts.mint_b.key().to_bytes(),
             &[authority_bump],

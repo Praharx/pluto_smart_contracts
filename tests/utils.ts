@@ -119,9 +119,9 @@ export function createValues(defaults?: TestValuesDefaults): TestValues {
     liquidityAccount: getAssociatedTokenAddressSync(mintLiquidity, payer.publicKey, true),
     holderAccountA: getAssociatedTokenAddressSync(mintAKeypair.publicKey, payer.publicKey, true),
     holderAccountB: getAssociatedTokenAddressSync(mintBKeypair.publicKey, payer.publicKey, true),
-    depositAmountA: new anchor.BN(10 * 10 ** 6),
+    depositAmountA: new anchor.BN(3 * 10 ** 6),
     depositAmountB: new anchor.BN(3 * 10 ** 6),
-    minimumLiquidity: new anchor.BN(1),
+    minimumLiquidity: new anchor.BN(100),
     defaultSupply: new anchor.BN(100),
   };
 }
