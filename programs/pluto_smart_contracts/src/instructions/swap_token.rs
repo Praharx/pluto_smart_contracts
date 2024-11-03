@@ -12,10 +12,10 @@ pub fn swap_tokens(
     output_amount: u64
 ) -> Result<()> {
     // Preventing the user from using the tokens he doesnt own
-    let input = if swap_a && input_amount > ctx.accounts.trader_account_a.amount {
-        ctx.accounts.trader_account_a.amount
-    } else if !swap_a && input_amount > ctx.accounts.trader_account_b.amount {
-        ctx.accounts.trader_account_b.amount
+    let input = if swap_a && input_amount > ctx.accounts.trader_ata_a.amount {
+        ctx.accounts.trader_ata_a.amount
+    } else if !swap_a && input_amount > ctx.accounts.trader_ata_b.amount {
+        ctx.accounts.trader_ata_b.amount
     } else {
         input_amount
     };
@@ -75,7 +75,7 @@ pub struct SwapToken<'info> {
             associated_token::authority = trader
         )
     ]
-    pub trader_account_a: Box<Account<'info, TokenAccount>>,
+    pub trader_ata_a: Box<Account<'info, TokenAccount>>,
     #[
         account(
             init_if_needed,
@@ -84,7 +84,7 @@ pub struct SwapToken<'info> {
             associated_token::authority = trader
         )
     ]
-    pub trader_account_b: Box<Account<'info, TokenAccount>>,
+    pub trader_ata_b: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

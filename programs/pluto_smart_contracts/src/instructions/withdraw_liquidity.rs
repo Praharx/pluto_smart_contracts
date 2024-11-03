@@ -5,20 +5,24 @@ use anchor_spl::{
 };
 use fixed::types::I64F64;
 use crate::{
+    errors::PlutoError,
     state::PoolState,
-    constants::MINIMUM_LIQUIDITY
+    constants::{MINIMUM_LIQUIDITY, AUTHORITY_SEED}
 };
 
+// amount here refers to the liquitity tokens aka mint_liquidity the user can give in orer to get the assets back.
 pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result<()> {
-    const AUTHORITY: &[u8] = b"pool_authority";
-        let authority_bump = ctx.bumps.pool_authority;
-        let authority_seeds = &[
-            AUTHORITY,
+    // This ensures user cant ask for the liquidity he doesnt own.
+    require!(ctx.accounts.withdrawer_account_liquidity.amount >= amount,PlutoError::InvalidWithdrawalAmount);
+    
+    let authority_bump = ctx.bumps.pool_authority;
+    let authority_seeds = &[
+            AUTHORITY_SEED,
             &ctx.accounts.mint_a.key().to_bytes(),
             &ctx.accounts.mint_b.key().to_bytes(),
             &[authority_bump],
         ];
-        let signer_seeds = &[authority_seeds.as_slice()];
+    let signer_seeds = &[authority_seeds.as_slice()];
 
     // Tranfer token from the pool
     // The withdrawals are calculated relative to the amount user asked for to the mint_liquidity tokens supply that exist in pool this would represent user's share in the pool and hence should receive tokens accordingly.
@@ -38,7 +42,7 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
             ctx.accounts.token_program.to_account_info(),
             Transfer {
                 from: ctx.accounts.pool_account_a.to_account_info(),
-                to: ctx.accounts.depositor_account_a.to_account_info(),
+                to: ctx.accounts.withdrawer_account_a.to_account_info(),
                 authority: ctx.accounts.pool_authority.to_account_info(),
             },
             signer_seeds
@@ -61,7 +65,7 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
             ctx.accounts.token_program.to_account_info(),
             Transfer {
                 from: ctx.accounts.pool_account_b.to_account_info(),
-                to: ctx.accounts.depositor_account_b.to_account_info(),
+                to: ctx.accounts.withdrawer_account_b.to_account_info(),
                 authority: ctx.accounts.pool_authority.to_account_info(),
             },
             signer_seeds
@@ -76,8 +80,8 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
             ctx.accounts.token_program.to_account_info(),
             Burn {
                 mint: ctx.accounts.mint_liquidity.to_account_info(),
-                from: ctx.accounts.depositor_account_liquidity.to_account_info(),
-                authority: ctx.accounts.depositor.to_account_info(),
+                from: ctx.accounts.withdrawer_account_liquidity.to_account_info(),
+                authority: ctx.accounts.withdrawer.to_account_info(),
             }
         ),
         amount
@@ -89,7 +93,7 @@ pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount:u64) -> Result
 #[derive(Accounts)]
 pub struct WithdrawLiquidity<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub withdrawer: Signer<'info>,
     #[account(
         seeds = [
             b"pool",
@@ -112,8 +116,6 @@ pub struct WithdrawLiquidity<'info> {
         bump        
     )]
     pub pool_authority: AccountInfo<'info>,
-
-    pub depositor: Signer<'info>,
 
     #[account(
         mut,
@@ -147,24 +149,24 @@ pub struct WithdrawLiquidity<'info> {
     #[account(
         mut,
         associated_token::mint = mint_liquidity,
-        associated_token::authority = depositor
+        associated_token::authority = withdrawer
     )]
-    pub depositor_account_liquidity: Box<Account<'info, TokenAccount>>,
+    pub withdrawer_account_liquidity: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
-        payer = payer,
+        payer = withdrawer,
         associated_token::mint = mint_a,
-        associated_token::authority = depositor
+        associated_token::authority = withdrawer
     )]
-    pub depositor_account_a: Box<Account<'info, TokenAccount>>,
+    pub withdrawer_account_a: Box<Account<'info, TokenAccount>>,
     #[account(
         init_if_needed,
-        payer = payer,
+        payer = withdrawer,
         associated_token::mint = mint_b,
-        associated_token::authority = depositor
+        associated_token::authority = withdrawer
     )]
-    pub depositor_account_b: Box<Account<'info, TokenAccount>>,
+    pub withdrawer_account_b: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
